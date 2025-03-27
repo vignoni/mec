@@ -1,0 +1,42 @@
+name: Evaluate Student Submission
+
+on:
+  push:
+    paths:
+      - '**.csv'
+
+jobs:
+  grade-student:
+    runs-on: ubuntu-latest
+    name: Grade Submission
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up MATLAB
+        uses: matlab-actions/setup-matlab@v1
+
+      - name: Find uploaded CSV file
+        id: find_file
+        run: |
+          FILE=$(find . -name "*.csv" | head -n 1)
+          echo "file=${FILE}" >> $GITHUB_OUTPUT
+          STUDENT_NAME=$(basename "$FILE" .csv | tr '_' ' ')
+          echo "name=${STUDENT_NAME}" >> $GITHUB_OUTPUT
+
+      - name: Run MATLAB assessment
+        uses: matlab-actions/run-command@v1
+        with:
+          command: |
+            setenv('CSV_FILE', '${{ steps.find_file.outputs.file }}');
+            setenv('STUDENT_NAME', '${{ steps.find_file.outputs.name }}');
+            run('Assesment.m');
+            run('generate_readme.m');
+
+      - name: Commit updated results
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add results.csv README.md
+          git commit -m "Update results for ${{ steps.find_file.outputs.name }}"
+          git push
