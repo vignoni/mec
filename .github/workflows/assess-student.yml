@@ -41,7 +41,8 @@ jobs:
           git diff-index --quiet HEAD . || git commit -m "Update results for ${{ env.name }}"
       - name: Push changes
         uses: ad-m/github-push-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT }}
         with:
-          github_token: ${{ secrets.PAT }}
           branch: main
           force: true
