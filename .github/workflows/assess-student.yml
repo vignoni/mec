@@ -7,11 +7,14 @@ on:
 
 jobs:
   grade-student:
-    runs-on: ubuntu-latest
     name: Grade Submission
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up MATLAB
+        uses: matlab-actions/setup-matlab@v2.3.1
 
       - name: Find uploaded CSV file
         id: find_file
@@ -20,11 +23,9 @@ jobs:
           STUDENT_NAME=$(basename "$FILE" .csv | tr '_' ' ')
           echo "file=$FILE" >> "$GITHUB_ENV"
           echo "name=$STUDENT_NAME" >> "$GITHUB_ENV"
-          echo "file=$FILE" >> "$GITHUB_OUTPUT"
-          echo "name=$STUDENT_NAME" >> "$GITHUB_OUTPUT"
 
-      - name: Run MATLAB assessment
-        uses: matlab-actions/run-command@v1
+      - name: Run MATLAB Assessment
+        uses: matlab-actions/run-command@v2
         with:
           command: |
             setenv('CSV_FILE', '${{ env.file }}');
@@ -32,7 +33,7 @@ jobs:
             run('Assesment.m');
             run('generate_readme.m');
 
-      - name: Push updated results
+      - name: Commit and Push Results
         env:
           TOKEN: ${{ secrets.PAT }}
         run: |
