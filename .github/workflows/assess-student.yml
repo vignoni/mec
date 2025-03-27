@@ -13,30 +13,33 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Set up MATLAB
-        uses: matlab-actions/setup-matlab@v1
-
       - name: Find uploaded CSV file
         id: find_file
         run: |
           FILE=$(find . -name "*.csv" | head -n 1)
-          echo "file=${FILE}" >> $GITHUB_OUTPUT
           STUDENT_NAME=$(basename "$FILE" .csv | tr '_' ' ')
-          echo "name=${STUDENT_NAME}" >> $GITHUB_OUTPUT
+          echo "file=$FILE" >> "$GITHUB_ENV"
+          echo "name=$STUDENT_NAME" >> "$GITHUB_ENV"
+          echo "file=$FILE" >> "$GITHUB_OUTPUT"
+          echo "name=$STUDENT_NAME" >> "$GITHUB_OUTPUT"
 
       - name: Run MATLAB assessment
         uses: matlab-actions/run-command@v1
         with:
           command: |
-            setenv('CSV_FILE', '${{ steps.find_file.outputs.file }}');
-            setenv('STUDENT_NAME', '${{ steps.find_file.outputs.name }}');
+            setenv('CSV_FILE', '${{ env.file }}');
+            setenv('STUDENT_NAME', '${{ env.name }}');
             run('Assesment.m');
             run('generate_readme.m');
 
-      - name: Commit updated results
+      - name: Push updated results
+        env:
+          TOKEN: ${{ secrets.PAT }}
         run: |
-          git config user.name github-actions
-          git config user.email github-actions@github.com
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git remote set-url origin https://x-access-token:${TOKEN}@github.com/${{ github.repository }}
+          git pull --rebase
           git add results.csv README.md
-          git commit -m "Update results for ${{ steps.find_file.outputs.name }}"
+          git commit -m "Update results for ${{ env.name }}" || echo "No changes to commit"
           git push
