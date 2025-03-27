@@ -40,7 +40,6 @@ jobs:
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
           git remote set-url origin https://x-access-token:${TOKEN}@github.com/${{ github.repository }}
-          git pull --rebase
           git add results.csv README.md
           git commit -m "Update results for ${{ env.name }}" || echo "No changes to commit"
           git push
