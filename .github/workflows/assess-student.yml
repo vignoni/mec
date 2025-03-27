@@ -33,16 +33,13 @@ jobs:
             run('Assesment.m');
             run('generate_readme.m');
 
-      - name: Commit changes, ready to push
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add results.csv README.md
-          git diff-index --quiet HEAD . || git commit -m "Update results for ${{ env.name }}"
-      - name: Push changes
-        uses: ad-m/github-push-action@master
+      - name: Push updated results
         env:
-          GITHUB_TOKEN: ${{ secrets.PAT }}
-        with:
-          branch: main
-          force: true
+          TOKEN: ${{ secrets.PAT }}
+        run: |
+          git config user.name "Auto Grader"
+          git config user.email "github-actions@github.com"
+          git remote set-url origin https://x-access-token:${TOKEN}@github.com/${{ github.repository }}
+          git add results.csv README.md
+          git commit -m "Update results for ${{ env.name }}" || echo "No changes to commit"
+          git push
