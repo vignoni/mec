@@ -32,14 +32,14 @@ jobs:
             setenv('STUDENT_NAME', '${{ env.name }}');
             run('Assesment.m');
             run('generate_readme.m');
-
-      - name: Push updated results
-        env:
-          TOKEN: ${{ secrets.PAT }}
+            
+      - name: Commit and push results
         run: |
           git config user.name "Auto Grader"
-          git config user.email "github-actions@github.com"
-          git remote set-url origin https://x-access-token:${TOKEN}@github.com/${{ github.repository }}
+          git config user.email "actions@github.com"
           git add results.csv README.md
           git commit -m "Update results for ${{ env.name }}" || echo "No changes to commit"
-          git push
+          git push origin HEAD:main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
